@@ -1,9 +1,26 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#    Copyright (C) 2013 and 2015 Tim Radvan and Ethan Smith
+#    This file is part of SKIPY.
+#
+#    SKIPY is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    SKIPY is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with SKIPY.  If not, see <http://www.gnu.org/licenses/>.
+
+
 import pygame
 from pygame.locals import *
 import skip
-from skip import Screen as SKIP
 from skip import *
 import kurt
 from pygame import draw
@@ -25,12 +42,14 @@ class MainWindow(skip.Screen):
         self.background = self.background.convert()
         self.background.fill((243,244,245))
         self.background_rect=self.background.get_rect()
-        #setup for lower left corner
+        #load images
         self.SpritesAndStage=pygame.image.load("SpritesAndStage.PNG")
         self.def_sprite=pygame.image.load("Default.png")
         self.choose_sprite=pygame.image.load("Choose_Hover.png")
         self.draw_sprite_rect=rect(385,self.screen.get_size()[1]-475, 23,23)
         self.error_img=pygame.image.load("Error.png")
+        self.start=pygame.image.load("start.png")
+        self.start_rect=Rect(0,0,30,30)
         self.error_layer=pygame.Surface((480,360),pygame.SRCALPHA)
         self.error_layer.blit(self.error_img,(0,0))
         self.error=False
@@ -54,8 +73,6 @@ class MainWindow(skip.Screen):
             self.set_project(kurt.Project.load("default.sb"))
         except Exception as e:
             print("Error "+str(e))
-        interpreter = skip.Interpreter(self.project)
-        interpreter.start()
         self.tick()
 
 
@@ -63,24 +80,21 @@ class MainWindow(skip.Screen):
 
         #titlebar
         draw.rect(self.background,(156,158,162),rect(0,0,1600,30))
-        #stage
 
-        draw.rect(self.surface,(208,209,210),rect(9,39,483,383))
-        self.surface.fill((255,255,255), rect(10,40,480,380))
-        #render stuff above this.
 
-        #self.background.blit(self.surface, (0,0))
         self.screen.blit(self.background, (0, 0))
         if self.screen.get_size()[1]<900:
             #too small, cut off image
             self.screen.blit(self.SpritesAndStage,(10,410))
             self.set_sprite_chooser()
-
         else:
             #big, resize accordingly
             self.screen.blit(self.SpritesAndStage,(10,(self.screen.get_size())[1]-490))
             self.set_sprite_chooser()
-        self.background.blit(self.surface, (0,0))
+        #start
+        self.screen.blit(self.start, (0,0))
+        #stage
+        self.screen.blit(self.surface, (10,30))
         if self.error:
             self.screen.blit(self.error_layer, (300,self.screen.get_size()[1]-490))
             time.sleep(2)
@@ -104,14 +118,15 @@ class MainWindow(skip.Screen):
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.running = False
-                else:
-                    name = pygame.key.name(event.key)
-                    if name in kurt.Insert(None, "key").options():
-                        yield ScreenEvent("key_pressed", name)
+
+                name = pygame.key.name(event.key)
+                if name in kurt.Insert(None, "key").options():
+                    yield ScreenEvent("key_pressed", name)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
+                    if self.start_rect.collide_point((self.mouse_pos[0],self.mouse_pos[1])):
+                        self.interpreter.start()
+                        print("starting interpreter")
                     yield ScreenEvent("mouse_down")
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
@@ -130,6 +145,7 @@ class MainWindow(skip.Screen):
         self.mouse_pos=pygame.mouse.get_pos()
         self.render()
         events = list(self.handle_events())
+        #GUI events
         for event in self.interpreter.tick(events):
             if event.kind == "clear":
                 self.clear()
@@ -193,10 +209,10 @@ class MainWindow(skip.Screen):
         return (x - 240, 180 - y)
 
     def draw_stage_without_sprite(self, sprite):
-        rect = skip.bounds(sprite)
+        _rect = skip.bounds(sprite)
         (x, y) = self.pos_to_screen(rect.topleft)
         offset = (-x, -y)
-        surface = pygame.Surface(rect.size).convert_alpha()
+        surface = pygame.Surface(_rect.size).convert_alpha()
         self.draw_sprite(self.project.stage, surface, offset)
         surface.blit(self.pen_surface, (0, 0))
         for actor in self.project.actors:
@@ -303,3 +319,9 @@ class MainWindow(skip.Screen):
 
 if __name__=="__main__":
     app=MainWindow()
+    #mainloop
+    while app.running:
+        app.tick()
+
+
+

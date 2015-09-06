@@ -61,6 +61,7 @@ class Interpreter(object):
         for scriptable in [self.project.stage] + self.project.sprites:
             self.augment(scriptable)
         self.stop()
+        self.running=False
         reset_timer(self)
 
         self.drag_sprite = None
@@ -96,6 +97,7 @@ class Interpreter(object):
         """Trigger green flag scripts."""
         self.stop()
         self.trigger_hats("whenGreenFlag")
+
 
     def trigger_hats(self, command, arg=None, callback=None):
         """Returns a list with each script that is triggered."""
