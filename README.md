@@ -1,5 +1,7 @@
 #SKIPY
 
+[![Join the chat at https://gitter.im/IronManMark20/SKIPY](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/IronManMark20/SKIPY?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 SKIPY is a Scratch editor written in Python. Why you might ask? Because. And some other reasons. If you want to know more, you can email me at mr.smittye at gmail (you know, gmail.com). This program is distrubuted under the GPLv3. All .png files and jpg giles are released under the [CC-by-SA license](https://creativecommons.org/licenses/by-sa/2.0/) (like all published Scratch projects).
 
 ##Current state:
